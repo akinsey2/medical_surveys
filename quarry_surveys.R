@@ -1,3 +1,4 @@
+
 library(tidyverse)
 
 #Read in data
@@ -157,7 +158,7 @@ g2 <- ggplot(data = count2, mapping = aes(x = BODY_PART, y = n, fill = FREQ)) +
   theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Frequency", x = "Body Area", y = "Count") +
+  labs(title = "Frequency of Discomfort (by Body Area, Raw Numbers)", x = "Body Area", y = "Count") +
   geom_col() +
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
   scale_y_continuous(breaks = scales::breaks_extended(n=20)) +
@@ -173,7 +174,7 @@ g2a <- ggplot(data = count2, mapping = aes(x = BODY_PART, y = n, fill = FREQ)) +
   theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Frequency of Discomfort", x = "Body Area", y = "Percentage Incidence") +
+  labs(title = "Frequency of Discomfort (by Body Area)", x = "Body Area", y = "Percentage Incidence") +
   geom_bar(position = "fill", stat = "identity") +
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
   scale_y_continuous(breaks = scales::breaks_extended(n=20)) #+
@@ -212,8 +213,8 @@ g4 <- ggplot(data = count4, mapping = aes(x = BODY_PART, y = n, fill=WORK_INT)) 
   theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Work Interruption", x = "Body Area", y = "Count") +
-  geom_col() + scale_fill_hue(l=45) +
+  labs(title = "Work Interruption vs. Body Area", x = "Body Area", y = "Count") +
+  geom_col() +
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
   scale_y_continuous(breaks = scales::breaks_extended(n=20)) +
   geom_text(aes(label = as.character(n)), position = position_stack(vjust=0.5), size=6)
@@ -235,14 +236,14 @@ g5 <- ggplot(data = count5, mapping = aes(x = SEVERITY, y = n, fill=WORK_INT)) +
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Severity vs. Work Interruption (vs. Frequency)", x = "Severity", y = "Count") +
-  geom_col() + scale_fill_hue(l=25) +
+  geom_col() +
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
   scale_y_continuous(breaks = scales::breaks_extended(n=20)) +
   geom_text(aes(label = as.character(n)), position = position_stack(vjust=0.5), size=6) +
-  facet_grid(cols=vars(FREQ), text=element_text(family = "Segoe UI", size=16))
+  facet_grid(cols=vars(FREQ))
 
 g5
-png(filename = "Freq vs Severity.png", width=1920, height=1080, pointsize = 18, type = "windows")
+png(filename = "Sev vs Work Int (vs Freq).png", width=1920, height=1080, pointsize = 18, type = "windows")
 plot(g5)
 dev.off()
 
@@ -254,17 +255,20 @@ count6 <- count(all_survey2, WORK_INT, SITE_QUARRY)
 
 g6 <- ggplot(data = count6, mapping = aes(x = SITE_QUARRY, y=n, fill = WORK_INT)) +
   theme_light() + 
-  theme(text=element_text(family = "Segoe UI", color="grey20"),
+  theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
   labs(title = "Work Interruption by Site", x = "Site / Quarry", y = "Count") +
-  geom_col() + scale_fill_hue(l=45) +
+  geom_col() + 
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
   scale_y_continuous(breaks = scales::breaks_extended(n=20)) +
-  geom_text(aes(label = as.character(n)), position = position_stack(vjust=0.5)) +
+  geom_text(aes(label = as.character(n)), position = position_stack(vjust=0.5), size=6) +
   theme(axis.text.x = element_text(angle = 90))
 
 g6
+png(filename = "Work Interruption by Site.png", width=1920, height=1080, pointsize = 18, type = "windows")
+plot(g6)
+dev.off()
 
 #7 Before vs After: Hunter Cement Plant
 
@@ -281,16 +285,39 @@ after_count_perc <- after_count
 after_count_perc$n <- round( after_count_perc$n/sum(after_count_perc$n)*100, 1)
 
 count7 <- full_join(before_count_perc, after_count_perc)
+count7$TREAT <- fct_rev(as.factor(count7$TREAT))
+count7a <- full_join(count(before, TREAT, FREQ), count(after, TREAT, FREQ))
+count7a$TREAT <- fct_rev(as.factor(count7a$TREAT))
 
-g7 <- ggplot(data = count7, mapping = aes(x = TREAT, y = n, group=TREAT)) +
+
+g7 <- ggplot(data = count7, mapping = aes(x = TREAT, y = n, fill=FREQ)) +
   theme_light() + 
-  theme(text=element_text(family = "Segoe UI", color="grey20"),
+  theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
         plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5)) +
-  labs(title = "Before / After Treatment", x = "Frequency of Discomfort", y = "Count") +
-  geom_bar() + scale_fill_hue(l=45) +
+  labs(title = "Before / After Treatment (Hunter Cement Plant)", x = "Frequency of Discomfort", y = "Percentage Incidence") +
+  geom_col() +
   scale_fill_brewer(palette="RdYlGn", direction = -1) +
-  scale_y_continuous(breaks = scales::breaks_extended(n=20)) +
-  geom_text(aes(label = as.character(n)), position = position_stack(vjust=0.5))
+  scale_y_continuous(breaks = scales::breaks_extended(n=20))
+  #geom_text(aes(label = as.character(count7a['n'])), position = position_stack(vjust=0.5))
 
 g7
+png(filename = "Before-After Freq.png", width=1920/2, height=1080, pointsize = 18, type = "windows")
+plot(g7)
+dev.off()
+
+g7a <- ggplot(data = count7, mapping = aes(x = TREAT, y = n, fill=WORK_INT)) +
+  theme_light() + 
+  theme(text=element_text(family = "Segoe UI", color="grey20", size=24),
+        plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5)) +
+  labs(title = "Before / After Treatment (Hunter Cement Plant)", x = "Work Interruption", y = "Percentage Incidence") +
+  geom_col() +
+  scale_fill_brewer(palette="RdYlGn", direction = -1) +
+  scale_y_continuous(breaks = scales::breaks_extended(n=20))
+#geom_text(aes(label = as.character(count7a['n'])), position = position_stack(vjust=0.5))
+
+g7a
+png(filename = "Before-After Work Int.png", width=1920/2, height=1080, pointsize = 18, type = "windows")
+plot(g7a)
+dev.off()
